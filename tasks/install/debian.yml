@@ -6,10 +6,7 @@
   when: not rabbitmq_os_package
 
 - name: add the official rabbitmq repository
-  copy:
-    src=../../files/rabbitmq.list
-    dest=/etc/apt/sources.list.d/
-    backup=yes
+  apt_repository: repo='deb http://www.rabbitmq.com/debian/ testing main' state=present
   register: aptrepo
   when: not rabbitmq_os_package
 
