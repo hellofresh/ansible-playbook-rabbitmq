@@ -1,41 +1,21 @@
 ---
 
-- name: Check if cluster exists and the first node in hosts.ini exists in the status output
-  shell: "rabbitmqctl cluster_status | grep {{ hostvars.keys()[0] | replace('.' + dynect_env_domain, '') }}"
-  register: cluster_result
+- name: cluster | Check clluster status for all the nodes except the node to join with
+  shell: "rabbitmqctl cluster_status | grep {{ rabbitmq_cluster_instance_to_join }}"
   changed_when: False
   ignore_errors: True
-  when: hostvars.keys()[0] != ansible_fqdn
+  when: "{{ rabbitmq_cluster_instance_to_join !=  ansible_fqdn }}"
+  register: cluster_result
 
-- name: stop rabbitmq app
+- name: cluster | stop rabbitmq app for standalone nodes in order to join
   shell: "rabbitmqctl stop_app"
   when: cluster_result is defined and cluster_result.rc == 1
 
 # for this to work, an entry including the short hostname must exist in /etc/hosts
-- name: add this node to cluster
-  shell: "rabbitmqctl join_cluster rabbit@{{ hostvars.keys()[0] | replace('.' + dynect_env_domain, '') }}"
+- name: cluster | add this node to cluster
+  shell: "rabbitmqctl join_cluster rabbit@{{ rabbitmq_cluster_instance_to_join }}"
   when: cluster_result is defined and cluster_result.rc == 1
 
-- name: start rabbitmq app
+- name: cluster | start rabbitmq app for standalone nodes
   shell: "rabbitmqctl start_app"
   when: cluster_result is defined and cluster_result.rc == 1
-
-# - name: Check if cluster exists and the first node in hosts.ini exists in the status output
-#   shell: "rabbitmqctl cluster_status | grep {{ hostvars.keys()[0] | replace('.' + dynect_env_domain, '') }}"
-#   register: cluster_result
-#   changed_when: False
-#   ignore_errors: True
-#   when: hostvars.keys()[0] != ansible_fqdn
-
-# - name: stop rabbitmq app
-#   shell: "rabbitmqctl stop_app"
-#   when: cluster_result is defined and cluster_result.rc == 1
-
-# # for this to work, an entry including the short hostname must exist in /etc/hosts
-# - name: add this node to cluster
-#   shell: "rabbitmqctl join_cluster rabbit@{{ hostvars.keys()[0] | replace('.' + dynect_env_domain, '') }}"
-#   when: cluster_result is defined and cluster_result.rc == 1
-
-# - name: start rabbitmq app
-#   shell: "rabbitmqctl start_app"
-#   when: cluster_result is defined and cluster_result.rc == 1

@@ -1,14 +1,18 @@
 ---
-- include: install/main.yml
-- include: configuration.yml
-- include: plugins.yml
-- include: vhost.yml
-- include: federation.yml
-  when: rabbitmq_federation
 
 - include: hostnames.yml
   when: rabbitmq_clustering
-  tags: ["rabbitmq-hostnames"]
+
+- include: install/main.yml
+
+- include: configuration.yml
+
+- include: plugins.yml
+
+- include: vhost.yml
+
+- include: federation.yml
+  when: rabbitmq_federation
 
 - include: erlang_cookie.yml
   when: rabbitmq_clustering

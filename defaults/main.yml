@@ -41,11 +41,12 @@ rabbitmq_conf_ssl_options_fail_if_no_peer_cert: "true"
 
 rabbitmq_env: false
 
+
+remove_guest_user                             : true
 # cluster options
 rabbitmq_erlang_cookie_path                   : "/var/lib/rabbitmq/.erlang.cookie"
 rabbitmq_erlang_cookie                        : beKSqkmoLrtvVfjOytLOQpATbGVEGbVA #test cookie, override for production
-remove_guest_user                             : true
+rabbitmq_cluster_instance_to_join             : "{{ groups[rabbitmq_cluster_group][0] | replace('.' + rabbitmq_cluster_post_fix_domain, '') }}"
 rabbitmq_clustering                           : false
-
 rabbitmq_cluster_group                        : rabbit_cluster
 rabbitmq_cluster_post_fix_domain              : ".production.example.com"
