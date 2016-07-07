@@ -142,6 +142,11 @@ rabbitmq_users_definitions:
     - administrator
 ```
 
+## Cluster
+
+# Limitations
+If you remove a node from inventory and node is still running it will not be removed
+
 ### Federation
 
 |Name|Type|Description|Default|
