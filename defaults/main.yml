@@ -40,3 +40,12 @@ rabbitmq_conf_ssl_options_keyfile             : "/etc/rabbitmq/ssl/{{ rabbitmq_s
 rabbitmq_conf_ssl_options_fail_if_no_peer_cert: "true"
 
 rabbitmq_env: false
+
+# cluster options
+rabbitmq_erlang_cookie_path                   : "/var/lib/rabbitmq/.erlang.cookie"
+rabbitmq_erlang_cookie                        : beKSqkmoLrtvVfjOytLOQpATbGVEGbVA #test cookie, override for production
+remove_guest_user                             : true
+rabbitmq_clustering                           : false
+
+rabbitmq_cluster_group                        : rabbit_cluster
+rabbitmq_cluster_post_fix_domain              : ".production.example.com"
