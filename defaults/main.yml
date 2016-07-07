@@ -46,7 +46,12 @@ remove_guest_user                             : true
 # cluster options
 rabbitmq_erlang_cookie_path                   : "/var/lib/rabbitmq/.erlang.cookie"
 rabbitmq_erlang_cookie                        : beKSqkmoLrtvVfjOytLOQpATbGVEGbVA #test cookie, override for production
-rabbitmq_cluster_instance_to_join             : "{{ groups[rabbitmq_cluster_group][0] | replace('.' + rabbitmq_cluster_post_fix_domain, '') }}"
+
+rabbitmq_cluster_instance_to_join_index       : 0
+rabbitmq_cluster_instance_to_join             : "{{ groups[rabbitmq_cluster_group][rabbitmq_cluster_instance_to_join_index] | replace('.' + rabbitmq_cluster_post_fix_domain, '') }}"
 rabbitmq_clustering                           : false
 rabbitmq_cluster_group                        : rabbit_cluster
 rabbitmq_cluster_post_fix_domain              : ".production.example.com"
+
+rabbitmq_cluster_api_user                     : "ordering"
+rabbitmq_cluster_api_password                 : "password"

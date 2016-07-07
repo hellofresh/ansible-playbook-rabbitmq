@@ -19,3 +19,32 @@
 - name: cluster | start rabbitmq app for standalone nodes
   shell: "rabbitmqctl start_app"
   when: cluster_result is defined and cluster_result.rc == 1
+
+- name: cluster | get not running nodes
+  uri:
+    url="http://localhost:15672/api/nodes"
+    user="{{ rabbitmq_cluster_api_user }}"
+    password="{{ rabbitmq_cluster_api_password }}"
+    method="GET"
+    return_content=true
+  delegate_to: "{{ groups[rabbitmq_cluster_group][rabbitmq_cluster_instance_to_join_index] }}"
+  run_once: true
+  register: cluster_nodes
+  tags: test
+
+- name: cluster | set not running cluster nodes to be removed
+  set_fact:
+    rabbitmq_cluster_nodes_to_remove="{{ cluster_nodes.content | from_json | selectattr('running', 'equalto', False) | list | map(attribute='name') | list }}"
+  delegate_to: "{{ groups[rabbitmq_cluster_group][rabbitmq_cluster_instance_to_join_index] }}"
+  run_once: true
+  tags: test
+
+- name: cluster | forget not running cluster nodes
+  shell: "rabbitmqctl forget_cluster_node {{ item }}"
+  with_items: "{{ rabbitmq_cluster_nodes_to_remove }}"
+  when: rabbitmq_cluster_nodes_to_remove != []
+  delegate_to: "{{ groups[rabbitmq_cluster_group][rabbitmq_cluster_instance_to_join_index] }}"
+  run_once: true
+  tags: test
+
+
