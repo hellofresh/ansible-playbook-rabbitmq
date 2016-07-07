@@ -19,14 +19,6 @@
     value=" {{ item.value }} "
   with_items: rabbitmq_federation_configuration
 
-- name: set the policy for the federation
-  rabbitmq_policy:
-    name={{ item.name }}
-    vhost={{ item.vhost | default('/', false) }}
-    pattern={{ item.pattern }}
-    tags={{ item.tags }}
-  with_items: rabbitmq_policy_configuration
-
 - name: get the version of rabbitmq
   shell: rabbitmqctl status | awk '{print $NF}'
   register: rabbitmq_version
