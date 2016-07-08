@@ -4,32 +4,32 @@
 # ################
 
 # Take the package given by the OS/distrib
-rabbitmq_os_package: false
+rabbitmq_os_package                           : false
 
 # Plugins
-rabbitmq_plugins: []
-rabbitmq_new_only: 'no'
+rabbitmq_plugins                              : []
+rabbitmq_new_only                             : 'no'
 
 # VHOST
-rabbitmq_vhost_definitions: []
-rabbitmq_users_definitions: []
+rabbitmq_vhost_definitions                    : []
+rabbitmq_users_definitions                    : []
 
 # Avoid setting up federation
-rabbitmq_federation: false
+rabbitmq_federation                           : false
 
 # defaults file for rabbitmq
-rabbitmq_cacert     : "files/rabbitmq_cacert.pem"
-rabbitmq_server_key : "files/rabbitmq_server_key.pem"
-rabbitmq_server_cert: "files/rabbitmq_server_cert.pem"
-rabbitmq_ssl        : true
+rabbitmq_cacert                               : "files/rabbitmq_cacert.pem"
+rabbitmq_server_key                           : "files/rabbitmq_server_key.pem"
+rabbitmq_server_cert                          : "files/rabbitmq_server_cert.pem"
+rabbitmq_ssl                                  : true
 
 # ######################
 # RabbitMQ Configuration
 # ######################
 
 # rabbitmq TCP configuration
-rabbitmq_conf_tcp_listeners_address: ''
-rabbitmq_conf_tcp_listeners_port: 5672
+rabbitmq_conf_tcp_listeners_address           : ''
+rabbitmq_conf_tcp_listeners_port              : 5672
 
 # rabbitmq SSL configuration
 rabbitmq_conf_ssl_listeners_address           : '0.0.0.0'
@@ -39,19 +39,27 @@ rabbitmq_conf_ssl_options_certfile            : "/etc/rabbitmq/ssl/{{ rabbitmq_s
 rabbitmq_conf_ssl_options_keyfile             : "/etc/rabbitmq/ssl/{{ rabbitmq_server_key | basename }}"
 rabbitmq_conf_ssl_options_fail_if_no_peer_cert: "true"
 
-rabbitmq_env: false
-
-
+rabbitmq_env                                  : false
+# Guest options
 remove_guest_user                             : true
-# cluster options
+
+# Enable cluster
+rabbitmq_clustering                           : false
+## Erlang cookie
 rabbitmq_erlang_cookie_path                   : "/var/lib/rabbitmq/.erlang.cookie"
 rabbitmq_erlang_cookie                        : beKSqkmoLrtvVfjOytLOQpATbGVEGbVA #test cookie, override for production
-
+## Cluster options
 rabbitmq_cluster_instance_to_join_index       : 0
-rabbitmq_cluster_instance_to_join             : "{{ groups[rabbitmq_cluster_group][rabbitmq_cluster_instance_to_join_index] | replace('.' + rabbitmq_cluster_post_fix_domain, '') }}"
-rabbitmq_clustering                           : false
+rabbitmq_cluster_instance_to_join             : "{{ groups[rabbitmq_cluster_group][rabbitmq_cluster_instance_to_join_index].split('.')[0] }}"
 rabbitmq_cluster_group                        : rabbit_cluster
-rabbitmq_cluster_post_fix_domain              : ".production.example.com"
+rabbitmq_cluster_post_fix_domain              : "production.example.com"
+# Automation user for cluster. You should encrypt
+rabbitmq_cluster_api_user                     : "api-automation"
+rabbitmq_cluster_api_password                 : "api-password"
 
-rabbitmq_cluster_api_user                     : "ordering"
-rabbitmq_cluster_api_password                 : "password"
+## Probably dont need to change that stuff
+### Construct a regex to match group before .
+rabbitmq_cluster_post_fix_domain_regex_replace: "([^.]*).*"
+# Print extra message related to inventory
+rabbitmq_cluster_debug                        : false
+
