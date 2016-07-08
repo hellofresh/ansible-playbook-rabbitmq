@@ -17,12 +17,11 @@
   when: cluster_result is defined and cluster_result.rc == 1
 
 # TODO: consider adding functionality to join multiple nodes if one of the nodes is down
-
 - name: cluster | start rabbitmq app for standalone nodes
   shell: "rabbitmqctl start_app"
   when: cluster_result is defined and cluster_result.rc == 1
 
-- name: cluster | get not running nodes
+- name: cluster | get nodes from API
   uri:
     url="http://localhost:15672/api/nodes"
     user="{{ rabbitmq_cluster_api_user }}"
@@ -33,11 +32,25 @@
   run_once: true
   register: reported_api_nodes
 
-- name: cluster | format each node in the rabbitmq group to rabbit@shortname
-  set_fact:
-    formatted_inventory_nodes="{{ groups[rabbitmq_cluster_group] | map('regex_replace', '^(.*)\.' + rabbitmq_cluster_post_fix_domain, 'rabbit@\\1') | list }}"
+- name: cluster | debug display regex
+  debug:
+    var=rabbitmq_cluster_post_fix_domain_regex_replace
   delegate_to: "{{ groups[rabbitmq_cluster_group][rabbitmq_cluster_instance_to_join_index] }}"
   run_once: true
+  when: rabbitmq_cluster_debug
+
+- name: cluster | format each node in the rabbitmq group to rabbit@shortname
+  set_fact:
+    formatted_inventory_nodes="{{ groups[rabbitmq_cluster_group] | map('regex_replace', rabbitmq_cluster_post_fix_domain_regex_replace, 'rabbit@\\1') | list }}"
+  delegate_to: "{{ groups[rabbitmq_cluster_group][rabbitmq_cluster_instance_to_join_index] }}"
+  run_once: true
+
+- name: cluster | debug display formatted inventory nodes
+  debug:
+    var=formatted_inventory_nodes
+  delegate_to: "{{ groups[rabbitmq_cluster_group][rabbitmq_cluster_instance_to_join_index] }}"
+  run_once: true
+  when: rabbitmq_cluster_debug
 
 - name: cluster | set cluster nodes to be removed which are not in the formatted_inventory_nodes
   set_fact:
@@ -45,10 +58,11 @@
   delegate_to: "{{ groups[rabbitmq_cluster_group][rabbitmq_cluster_instance_to_join_index] }}"
   run_once: true
 
-- name: cluster | display nodes that will be removed
+- name: cluster | debug display nodes that will be removed
   debug: var=rabbitmq_cluster_nodes_to_remove
   delegate_to: "{{ groups[rabbitmq_cluster_group][rabbitmq_cluster_instance_to_join_index] }}"
   run_once: true
+  when: rabbitmq_cluster_debug
 
 - name: cluster | try to stop nodes to be removed
   shell: "rabbitmqctl stop_app"
@@ -59,7 +73,7 @@
 
 - name: cluster | forget not running cluster nodes
   shell: "rabbitmqctl forget_cluster_node {{ item }}"
-  with_items: "{{ rabbitmq_cluster_nodes_to_remove }}"
-  when: rabbitmq_cluster_nodes_to_remove != []
   delegate_to: "{{ groups[rabbitmq_cluster_group][rabbitmq_cluster_instance_to_join_index] }}"
   run_once: true
+  with_items: "{{ rabbitmq_cluster_nodes_to_remove }}"
+  when: rabbitmq_cluster_nodes_to_remove != []
