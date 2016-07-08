@@ -31,13 +31,17 @@
     return_content=true
   delegate_to: "{{ groups[rabbitmq_cluster_group][rabbitmq_cluster_instance_to_join_index] }}"
   run_once: true
-  register: cluster_nodes
+  register: reported_api_nodes
 
-# if node is not in the inventory it needs to be removed from the
-# | selectattr('running', 'equalto', False) | list
-- name: cluster | set not running cluster nodes to be removed and not in the inventory
+- name: cluster | format each node in the rabbitmq group to rabbit@shortname
   set_fact:
-    rabbitmq_cluster_nodes_to_remove="{{ cluster_nodes.content | from_json | map(attribute='name') | list | difference(groups[rabbitmq_cluster_group]) }}"
+    formatted_inventory_nodes="{{ groups[rabbitmq_cluster_group] | map('regex_replace', '^(.*)\.' + rabbitmq_cluster_post_fix_domain, 'rabbit@\\1') | list }}"
+  delegate_to: "{{ groups[rabbitmq_cluster_group][rabbitmq_cluster_instance_to_join_index] }}"
+  run_once: true
+
+- name: cluster | set cluster nodes to be removed which are not in the formatted_inventory_nodes
+  set_fact:
+    rabbitmq_cluster_nodes_to_remove="{{ reported_api_nodes.content | from_json | map(attribute='name') | difference(formatted_inventory_nodes) | list }}"
   delegate_to: "{{ groups[rabbitmq_cluster_group][rabbitmq_cluster_instance_to_join_index] }}"
   run_once: true
 
@@ -45,6 +49,13 @@
   debug: var=rabbitmq_cluster_nodes_to_remove
   delegate_to: "{{ groups[rabbitmq_cluster_group][rabbitmq_cluster_instance_to_join_index] }}"
   run_once: true
+
+- name: cluster | try to stop nodes to be removed
+  shell: "rabbitmqctl stop_app"
+  delegate_to: "{{ item | replace('rabbit@', '') + '.' + rabbitmq_cluster_post_fix_domain }}"
+  run_once: true
+  with_items: "{{ rabbitmq_cluster_nodes_to_remove }}"
+  when: rabbitmq_cluster_nodes_to_remove != []
 
 - name: cluster | forget not running cluster nodes
   shell: "rabbitmqctl forget_cluster_node {{ item }}"
