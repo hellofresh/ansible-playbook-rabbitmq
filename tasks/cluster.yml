@@ -16,6 +16,8 @@
   shell: "rabbitmqctl join_cluster rabbit@{{ rabbitmq_cluster_instance_to_join }}"
   when: cluster_result is defined and cluster_result.rc == 1
 
+# TODO: consider adding functionality to join multiple nodes if one of the nodes is down
+
 - name: cluster | start rabbitmq app for standalone nodes
   shell: "rabbitmqctl start_app"
   when: cluster_result is defined and cluster_result.rc == 1
@@ -30,14 +32,19 @@
   delegate_to: "{{ groups[rabbitmq_cluster_group][rabbitmq_cluster_instance_to_join_index] }}"
   run_once: true
   register: cluster_nodes
-  tags: test
 
-- name: cluster | set not running cluster nodes to be removed
+# if node is not in the inventory it needs to be removed from the
+# | selectattr('running', 'equalto', False) | list
+- name: cluster | set not running cluster nodes to be removed and not in the inventory
   set_fact:
-    rabbitmq_cluster_nodes_to_remove="{{ cluster_nodes.content | from_json | selectattr('running', 'equalto', False) | list | map(attribute='name') | list }}"
+    rabbitmq_cluster_nodes_to_remove="{{ cluster_nodes.content | from_json | map(attribute='name') | list | difference(groups[rabbitmq_cluster_group]) }}"
   delegate_to: "{{ groups[rabbitmq_cluster_group][rabbitmq_cluster_instance_to_join_index] }}"
   run_once: true
-  tags: test
+
+- name: cluster | display nodes that will be removed
+  debug: var=rabbitmq_cluster_nodes_to_remove
+  delegate_to: "{{ groups[rabbitmq_cluster_group][rabbitmq_cluster_instance_to_join_index] }}"
+  run_once: true
 
 - name: cluster | forget not running cluster nodes
   shell: "rabbitmqctl forget_cluster_node {{ item }}"
@@ -45,6 +52,3 @@
   when: rabbitmq_cluster_nodes_to_remove != []
   delegate_to: "{{ groups[rabbitmq_cluster_group][rabbitmq_cluster_instance_to_join_index] }}"
   run_once: true
-  tags: test
-
-
