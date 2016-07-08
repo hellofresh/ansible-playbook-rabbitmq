@@ -11,6 +11,8 @@
 
 - include: vhost.yml
 
+- include: users.yml
+
 - include: policy.yml
   when: "rabbitmq_policy_configuration is defined"
 
