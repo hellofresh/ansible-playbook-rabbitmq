@@ -9,6 +9,7 @@
 
 - name: plugins | get the list of active plugins to disable
   command: rabbitmq-plugins list -e -m
+  changed_when: False
   register: result
   when: rabbitmq_plugins == []
 

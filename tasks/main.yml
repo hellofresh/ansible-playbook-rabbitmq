@@ -1,8 +1,5 @@
 ---
 
-- include: hostnames.yml
-  when: rabbitmq_clustering
-
 - include: install/main.yml
 
 - include: configuration.yml
@@ -19,10 +16,9 @@
 - include: federation.yml
   when: rabbitmq_federation
 
-- include: erlang_cookie.yml
+- block:
+    - include: cluster/checks.yml
+    - include: cluster/hostnames.yml
+    - include: cluster/erlang_cookie.yml
+    - include: cluster/cluster.yml
   when: rabbitmq_clustering
-  tags: ["rabbitmq-erlang"]
-
-- include: cluster.yml
-  when: rabbitmq_clustering
-  tags: ["rabbitmq-cluster"]

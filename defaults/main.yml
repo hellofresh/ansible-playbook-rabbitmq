@@ -28,7 +28,7 @@ rabbitmq_ssl                                  : true
 # ######################
 
 # rabbitmq TCP configuration
-rabbitmq_conf_tcp_listeners_address           : ''
+rabbitmq_conf_tcp_listeners_address           : '0.0.0.0'
 rabbitmq_conf_tcp_listeners_port              : 5672
 
 # rabbitmq SSL configuration
@@ -56,6 +56,9 @@ rabbitmq_cluster_post_fix_domain              : "production.example.com"
 # Automation user for cluster. You should encrypt
 rabbitmq_cluster_api_user                     : "api-automation"
 rabbitmq_cluster_api_password                 : "api-password"
+
+# How to get the IPs of cluster
+rabbitmq_clustering_resolve_names             : "ansible" # ['ansible', dns]
 
 ## Probably dont need to change that stuff
 ### Construct a regex to match group before .
