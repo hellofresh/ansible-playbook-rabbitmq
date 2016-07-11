@@ -23,6 +23,14 @@ rabbitmq_server_key                           : "files/rabbitmq_server_key.pem"
 rabbitmq_server_cert                          : "files/rabbitmq_server_cert.pem"
 rabbitmq_ssl                                  : true
 
+## Optional logging
+##  none, error, warnings, info, debug
+# rabbitmq_log_level                           :
+#                                                  channel    : error
+#                                                  connection : error
+#                                                  federation : error
+#                                                  mirroring  : error
+
 # ######################
 # RabbitMQ Configuration
 # ######################

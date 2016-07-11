@@ -1,5 +1,15 @@
+%% {{ ansible_managed }}
 [
   {rabbit, [
+{#
+   Logging level
+#}
+{% if rabbitmq_log_level is defined %}
+      %% Log level
+      {log_levels, [
+        {% for key, value in rabbitmq_log_level.iteritems() %}{ {{ key }}, {{ value}} }{% if not loop.last %},{% endif %}{% endfor %}
+      ] },
+{% endif %}
 {#
    If there is a listenning address defined for the insecure TCP listenner,
    declare it.
